@@ -3,38 +3,40 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>مثبّت تطبيقات السيارة</title>
+<title>JETOUR</title>
 <style>
 /* ===== Change the look here ===== */
 :root{
-  --bg:#0c0f13; --panel:rgba(18,22,28,.78); --line:rgba(255,255,255,.12);
-  --text:#eef1f4; --muted:#9aa4b0; --accent:#f0a233; --accent-2:#ffbf5e;
-  --ok:#3ecf8e; --err:#ff6b6b;
+  --bg:#17181b; --panel:rgba(26,28,32,.72); --line:rgba(201,206,210,.22);
+  --text:#eeefef; --muted:#a9b0b7; --accent:#8aa8bf; --accent-2:#adc4d6;
+  --warm:#b39682; --ok:#9cc7a8; --err:#e08a78;
 }
 *{box-sizing:border-box}
 html,body{height:100%;margin:0}
 body{font-family:system-ui,"Segoe UI",Tahoma,Arial,sans-serif;color:var(--text);background:var(--bg) url(bg.jpg) center/cover fixed no-repeat;
   display:flex;align-items:center;justify-content:center;padding:16px}
-body::before{content:"";position:fixed;inset:0;background:linear-gradient(180deg,rgba(8,10,14,.55),rgba(8,10,14,.85));z-index:-1}
+body::before{content:"";position:fixed;inset:0;background:linear-gradient(180deg,rgba(22,28,36,.35),rgba(14,15,17,.88));z-index:-1}
 .card{width:100%;max-width:520px;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:24px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
-h1{font-size:22px;margin:0 0 4px} .sub{color:var(--muted);font-size:14px;margin:0 0 18px}
+h1{margin:0 0 4px;direction:ltr;unicode-bidi:isolate;font-family:"Arial Black",Impact,system-ui,sans-serif;font-size:28px;font-weight:900;letter-spacing:.34em;line-height:1;text-transform:uppercase;color:var(--text);padding-bottom:8px;position:relative}
+h1::after{content:"";position:absolute;left:0;bottom:0;width:46px;height:3px;border-radius:2px;background:linear-gradient(90deg,var(--accent),var(--warm))}
+.sub{color:var(--muted);font-size:14px;margin:0 0 18px}
 label{display:block;font-size:13px;color:var(--muted);margin:12px 0 6px}
-input[type=text],input[type=password]{width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:rgba(0,0,0,.35);color:var(--text);font-size:16px}
+input[type=text],input[type=password]{width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:rgba(14,15,17,.5);color:var(--text);font-size:16px}
 input:focus{outline:2px solid var(--accent);outline-offset:1px}
 button{font:inherit;cursor:pointer;border:0;border-radius:10px;padding:12px 16px;font-weight:600}
-.primary{background:var(--accent);color:#1a1205;width:100%} .primary:hover{background:var(--accent-2)}
+.primary{background:linear-gradient(135deg,var(--accent),#6f8ca3);color:#0f151b;width:100%} .primary:hover{background:var(--accent-2)}
 .primary:disabled{opacity:.45;cursor:not-allowed}
 .ghost{background:transparent;color:var(--text);border:1px solid var(--line);padding:8px 12px;font-size:13px}
 .row{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-bottom:14px}
 .pill{font-size:12px;padding:5px 10px;border-radius:99px;border:1px solid var(--line);color:var(--muted)}
 .pill.on{color:var(--ok);border-color:var(--ok)}
 .drop{margin:14px 0;border:2px dashed var(--line);border-radius:14px;padding:26px 12px;text-align:center;color:var(--muted);cursor:pointer;transition:.15s}
-.drop.over,.drop:hover{border-color:var(--accent);color:var(--text)}
+.drop.over,.drop:hover{border-color:var(--warm);color:var(--text)}
 .files{list-style:none;margin:0 0 14px;padding:0;display:grid;gap:6px}
-.files li{display:flex;justify-content:space-between;gap:8px;padding:9px 12px;border-radius:9px;background:rgba(0,0,0,.3);font-size:13px}
+.files li{display:flex;justify-content:space-between;gap:8px;padding:9px 12px;border-radius:9px;background:rgba(14,15,17,.45);font-size:13px}
 .files .st{color:var(--muted);white-space:nowrap} .files .ok{color:var(--ok)} .files .bad{color:var(--err)}
 .logh{display:flex;justify-content:space-between;align-items:center;margin:16px 0 6px;font-size:13px;color:var(--muted)}
-pre{margin:0;height:150px;overflow:auto;background:rgba(0,0,0,.45);border:1px solid var(--line);border-radius:10px;padding:10px;font-size:12px;direction:ltr;text-align:left;white-space:pre-wrap;color:#cfd6de}
+pre{margin:0;height:150px;overflow:auto;background:rgba(14,15,17,.55);border:1px solid var(--line);border-radius:10px;padding:10px;font-size:12px;direction:ltr;text-align:left;white-space:pre-wrap;color:#d5dade}
 .err{color:var(--err);font-size:13px;min-height:18px;margin-top:10px}
 .hide{display:none!important}
 .note{color:var(--muted);font-size:12px;margin-top:14px;text-align:center}
@@ -74,12 +76,12 @@ pre{margin:0;height:150px;overflow:auto;background:rgba(0,0,0,.45);border:1px so
 
 <script type="module">
 const T = {
-  ar:{title:"مثبّت تطبيقات السيارة",loginSub:"سجّل الدخول للمتابعة",user:"اسم المستخدم",pass:"كلمة المرور",enter:"دخول",logout:"خروج",
+  ar:{title:"JETOUR",loginSub:"سجّل الدخول للمتابعة",user:"اسم المستخدم",pass:"كلمة المرور",enter:"دخول",logout:"خروج",
     offline:"غير متصل",online:"متصل",connect:"اتصال بالسيارة",disconnect:"قطع الاتصال",drop:"اسحب ملفات APK هنا أو انقر للاختيار",
     install:"تثبيت التطبيقات",log:"سجل العمليات",copy:"نسخ",clear:"مسح",bad:"بيانات الدخول غير صحيحة",
     privacy:"يعمل بالكامل داخل المتصفح عبر WebUSB، ولا تُرفع ملفاتك إلى أي خادم.",
     noUsb:"المتصفح لا يدعم WebUSB. استخدم Chrome أو Edge.",wait:"بانتظار",doing:"جارٍ التثبيت…",done:"تم",fail:"فشل"},
-  en:{title:"Car App Installer",loginSub:"Sign in to continue",user:"Username",pass:"Password",enter:"Sign in",logout:"Log out",
+  en:{title:"JETOUR",loginSub:"Sign in to continue",user:"Username",pass:"Password",enter:"Sign in",logout:"Log out",
     offline:"Offline",online:"Connected",connect:"Connect to car",disconnect:"Disconnect",drop:"Drop APK files here or click to choose",
     install:"Install apps",log:"Activity log",copy:"Copy",clear:"Clear",bad:"Incorrect username or password",
     privacy:"Runs entirely in your browser over WebUSB. Your files are never uploaded.",
