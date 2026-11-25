@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>مثبّت تطبيقات السيارة</title>
+<style>
+/* ===== Change the look here ===== */
+:root{
+  --bg:#0c0f13; --panel:rgba(18,22,28,.78); --line:rgba(255,255,255,.12);
+  --text:#eef1f4; --muted:#9aa4b0; --accent:#f0a233; --accent-2:#ffbf5e;
+  --ok:#3ecf8e; --err:#ff6b6b;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{font-family:system-ui,"Segoe UI",Tahoma,Arial,sans-serif;color:var(--text);background:var(--bg) url(bg.jpg) center/cover fixed no-repeat;
+  display:flex;align-items:center;justify-content:center;padding:16px}
+body::before{content:"";position:fixed;inset:0;background:linear-gradient(180deg,rgba(8,10,14,.55),rgba(8,10,14,.85));z-index:-1}
+.card{width:100%;max-width:520px;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:24px;backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+h1{font-size:22px;margin:0 0 4px} .sub{color:var(--muted);font-size:14px;margin:0 0 18px}
+label{display:block;font-size:13px;color:var(--muted);margin:12px 0 6px}
+input[type=text],input[type=password]{width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:rgba(0,0,0,.35);color:var(--text);font-size:16px}
+input:focus{outline:2px solid var(--accent);outline-offset:1px}
+button{font:inherit;cursor:pointer;border:0;border-radius:10px;padding:12px 16px;font-weight:600}
+.primary{background:var(--accent);color:#1a1205;width:100%} .primary:hover{background:var(--accent-2)}
+.primary:disabled{opacity:.45;cursor:not-allowed}
+.ghost{background:transparent;color:var(--text);border:1px solid var(--line);padding:8px 12px;font-size:13px}
+.row{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-bottom:14px}
+.pill{font-size:12px;padding:5px 10px;border-radius:99px;border:1px solid var(--line);color:var(--muted)}
+.pill.on{color:var(--ok);border-color:var(--ok)}
+.drop{margin:14px 0;border:2px dashed var(--line);border-radius:14px;padding:26px 12px;text-align:center;color:var(--muted);cursor:pointer;transition:.15s}
+.drop.over,.drop:hover{border-color:var(--accent);color:var(--text)}
+.files{list-style:none;margin:0 0 14px;padding:0;display:grid;gap:6px}
+.files li{display:flex;justify-content:space-between;gap:8px;padding:9px 12px;border-radius:9px;background:rgba(0,0,0,.3);font-size:13px}
+.files .st{color:var(--muted);white-space:nowrap} .files .ok{color:var(--ok)} .files .bad{color:var(--err)}
+.logh{display:flex;justify-content:space-between;align-items:center;margin:16px 0 6px;font-size:13px;color:var(--muted)}
+pre{margin:0;height:150px;overflow:auto;background:rgba(0,0,0,.45);border:1px solid var(--line);border-radius:10px;padding:10px;font-size:12px;direction:ltr;text-align:left;white-space:pre-wrap;color:#cfd6de}
+.err{color:var(--err);font-size:13px;min-height:18px;margin-top:10px}
+.hide{display:none!important}
+.note{color:var(--muted);font-size:12px;margin-top:14px;text-align:center}
+</style>
+</head>
+<body>
+
+<!-- Login -->
+<form class="card" id="login" autocomplete="on">
+  <div class="row"><h1 data-t="title"></h1><button type="button" class="ghost" data-lang>EN</button></div>
+  <p class="sub" data-t="loginSub"></p>
+  <label for="u" data-t="user"></label>
+  <input id="u" type="text" name="username" autocomplete="username" required>
+  <label for="p" data-t="pass"></label>
+  <input id="p" type="password" name="password" autocomplete="current-password" required>
+  <div class="err" id="lerr"></div>
+  <button class="primary" type="submit" data-t="enter" style="margin-top:8px"></button>
+</form>
+
+<!-- App -->
+<main class="card hide" id="app">
+  <div class="row">
+    <h1 data-t="title"></h1>
+    <div style="display:flex;gap:6px"><button class="ghost" data-lang>EN</button><button class="ghost" id="out" data-t="logout"></button></div>
+  </div>
+  <div class="row"><span class="pill" id="status" data-t="offline"></span><span class="sub" id="dev" style="margin:0"></span></div>
+  <button class="primary" id="connect" data-t="connect"></button>
+
+  <div class="drop" id="drop"><div style="font-size:26px">⬆</div><div data-t="drop"></div><input id="pick" type="file" accept=".apk" multiple hidden></div>
+  <ul class="files" id="files"></ul>
+  <button class="primary" id="install" disabled data-t="install"></button>
+
+  <div class="logh"><span data-t="log"></span><span><button class="ghost" id="copy" data-t="copy"></button> <button class="ghost" id="clear" data-t="clear"></button></span></div>
+  <pre id="logbox"></pre>
+  <p class="note" data-t="privacy"></p>
+</main>
+
+<script type="module">
+const T = {
+  ar:{title:"مثبّت تطبيقات السيارة",loginSub:"سجّل الدخول للمتابعة",user:"اسم المستخدم",pass:"كلمة المرور",enter:"دخول",logout:"خروج",
+    offline:"غير متصل",online:"متصل",connect:"اتصال بالسيارة",disconnect:"قطع الاتصال",drop:"اسحب ملفات APK هنا أو انقر للاختيار",
+    install:"تثبيت التطبيقات",log:"سجل العمليات",copy:"نسخ",clear:"مسح",bad:"بيانات الدخول غير صحيحة",
+    privacy:"يعمل بالكامل داخل المتصفح عبر WebUSB، ولا تُرفع ملفاتك إلى أي خادم.",
+    noUsb:"المتصفح لا يدعم WebUSB. استخدم Chrome أو Edge.",wait:"بانتظار",doing:"جارٍ التثبيت…",done:"تم",fail:"فشل"},
+  en:{title:"Car App Installer",loginSub:"Sign in to continue",user:"Username",pass:"Password",enter:"Sign in",logout:"Log out",
+    offline:"Offline",online:"Connected",connect:"Connect to car",disconnect:"Disconnect",drop:"Drop APK files here or click to choose",
+    install:"Install apps",log:"Activity log",copy:"Copy",clear:"Clear",bad:"Incorrect username or password",
+    privacy:"Runs entirely in your browser over WebUSB. Your files are never uploaded.",
+    noUsb:"This browser does not support WebUSB. Use Chrome or Edge.",wait:"Waiting",doing:"Installing…",done:"Done",fail:"Failed"}
+};
+let lang = localStorage.getItem("lang") || "ar";
+const $ = (id) => document.getElementById(id);
+const t = (k) => T[lang][k];
+function applyLang(){
+  document.documentElement.lang = lang; document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+  document.title = t("title");
+  document.querySelectorAll("[data-t]").forEach(e => e.textContent = t(e.dataset.t));
+  document.querySelectorAll("[data-lang]").forEach(e => e.textContent = lang === "ar" ? "EN" : "عربي");
+  setStatus(!!adb);
+}
+document.querySelectorAll("[data-lang]").forEach(b => b.onclick = () => { lang = lang === "ar" ? "en" : "ar"; localStorage.setItem("lang", lang); applyLang(); });
+
+const log = (m) => { const b = $("logbox"); b.textContent += `[${new Date().toLocaleTimeString()}] ${m}\n`; b.scrollTop = b.scrollHeight; };
+$("clear").onclick = () => $("logbox").textContent = "";
+$("copy").onclick = () => navigator.clipboard?.writeText($("logbox").textContent);
+
+/* ---------- Login ---------- */
+const getTok = () => { try { return sessionStorage.getItem("tok"); } catch { return null; } };
+const showApp = (on) => { $("login").classList.toggle("hide", on); $("app").classList.toggle("hide", !on); };
+async function verify(){
+  const tok = getTok(); if (!tok) return showApp(false);
+  try { const r = await fetch("/api/auth", { headers: { Authorization: "Bearer " + tok } }); showApp(r.ok); }
+  catch { showApp(false); }
+}
+$("login").onsubmit = async (e) => {
+  e.preventDefault(); $("lerr").textContent = "";
+  try {
+    const r = await fetch("/api/auth", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ u: $("u").value, p: $("p").value }) });
+    if (!r.ok) { $("lerr").textContent = t("bad"); return; }
+    const { token } = await r.json();
+    try { sessionStorage.setItem("tok", token); } catch {}
+    $("p").value = ""; showApp(true);
+  } catch { $("lerr").textContent = t("bad"); }
+};
+$("out").onclick = async () => { await disconnect(); try { sessionStorage.removeItem("tok"); } catch {} showApp(false); };
+
+/* ---------- Files ---------- */
+let files = [];
+function renderFiles(){
+  $("files").innerHTML = "";
+  files.forEach(f => {
+    const li = document.createElement("li");
+    const n = document.createElement("span"); n.textContent = `${f.file.name} (${(f.file.size / 1048576).toFixed(1)} MB)`;
+    const s = document.createElement("span"); s.className = "st " + (f.cls || ""); s.textContent = f.st; f.el = s;
+    li.append(n, s); $("files").append(li);
+  });
+  $("install").disabled = !(adb && files.length);
+}
+function addFiles(list){
+  [...list].filter(f => f.name.toLowerCase().endsWith(".apk")).forEach(file => files.push({ file, st: t("wait") }));
+  renderFiles();
+}
+$("drop").onclick = () => $("pick").click();
+$("pick").onchange = (e) => { addFiles(e.target.files); e.target.value = ""; };
+["dragover","dragenter"].forEach(ev => $("drop").addEventListener(ev, e => { e.preventDefault(); $("drop").classList.add("over"); }));
+["dragleave","drop"].forEach(ev => $("drop").addEventListener(ev, e => { e.preventDefault(); $("drop").classList.remove("over"); }));
+$("drop").addEventListener("drop", e => addFiles(e.dataTransfer.files));
+
+/* ---------- ADB ---------- */
+let adb = null, lib = null;
+function setStatus(on, name){
+  $("status").textContent = on ? t("online") : t("offline");
+  $("status").classList.toggle("on", on);
+  $("connect").textContent = on ? t("disconnect") : t("connect");
+  if (name !== undefined) $("dev").textContent = name || "";
+  $("install").disabled = !(on && files.length);
+}
+async function loadLib(){
+  if (lib) return lib;
+  const V = "0.0.24", H = "https://esm.sh/@yume-chan/";
+  log("Loading ADB engine…");
+  const [a, w, c, b] = await Promise.all([
+    import(`${H}adb@${V}`), import(`${H}adb-daemon-webusb@${V}`),
+    import(`${H}adb-credential-web@${V}`), import(`${H}android-bin@${V}`)
+  ]);
+  lib = { Adb: a.Adb, Transport: a.AdbDaemonTransport, Manager: w.AdbDaemonWebUsbDeviceManager,
+          Store: c.default ?? c.AdbWebCredentialStore, PM: b.PackageManager };
+  return lib;
+}
+async function connect(){
+  if (!navigator.usb) { log(t("noUsb")); return; }
+  try {
+    const L = await loadLib();
+    const device = await L.Manager.BROWSER.requestDevice();
+    if (!device) return;
+    log("Opening USB connection… (accept the prompt on the car screen if it appears)");
+    const connection = await device.connect();
+    const transport = await L.Transport.authenticate({ serial: device.serial, connection, credentialStore: new L.Store("car-installer") });
+    adb = new L.Adb(transport);
+    const model = adb.banner?.model || device.name || device.serial;
+    log("Connected: " + model);
+    setStatus(true, model);
+  } catch (e) { log("Connect error: " + (e?.message || e)); adb = null; setStatus(false, ""); }
+}
+async function disconnect(){
+  if (adb) { try { await adb.close(); } catch {} adb = null; log("Disconnected"); }
+  setStatus(false, "");
+}
+$("connect").onclick = () => adb ? disconnect() : connect();
+
+$("install").onclick = async () => {
+  if (!adb) return;
+  $("install").disabled = true;
+  const pm = new lib.PM(adb);
+  for (const f of files) {
+    f.st = t("doing"); f.cls = ""; f.el.textContent = f.st; f.el.className = "st";
+    log("Installing " + f.file.name);
+    try {
+      await pm.installStream(f.file.size, f.file.stream());
+      f.st = t("done"); f.cls = "ok"; log("OK: " + f.file.name);
+    } catch (e) {
+      f.st = t("fail"); f.cls = "bad"; log("FAILED: " + f.file.name + " — " + (e?.message || e));
+    }
+    f.el.textContent = f.st; f.el.className = "st " + f.cls;
+  }
+  $("install").disabled = !(adb && files.length);
+};
+
+applyLang();
+verify();
+</script>
+</body>
+</html>
