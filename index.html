@@ -48,6 +48,14 @@ pre{margin:0;height:150px;overflow:auto;background:rgba(14,15,17,.55);border:1px
 .selbar{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:8px;border:1px solid var(--line);border-radius:12px;background:rgba(14,15,17,.45)}
 .selbar img{width:56px;height:36px;object-fit:cover;border-radius:8px}
 .selbar .t{flex:1;line-height:1.25} .selbar .b{font-size:11px;color:var(--muted);letter-spacing:.14em} .selbar .n{font-weight:700}
+.lib{list-style:none;margin:0 0 14px;padding:0;display:grid;gap:6px}
+.lib label{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:rgba(14,15,17,.45);cursor:pointer}
+.lib label:hover{border-color:var(--accent)}
+.lib input{accent-color:var(--accent);width:18px;height:18px;margin-top:2px;flex:none}
+.lib .nm{font-weight:600;font-size:14px} .lib .ds{color:var(--muted);font-size:12px;margin-top:2px}
+.lib .st{margin-inline-start:auto;font-size:12px;color:var(--muted);white-space:nowrap}
+.lib .st.ok{color:var(--ok)} .lib .st.bad{color:var(--err)}
+.lib .empty{color:var(--muted);font-size:13px;padding:6px 2px}
 .hide{display:none!important}
 .note{color:var(--muted);font-size:12px;margin-top:14px;text-align:center}
 </style>
@@ -82,6 +90,9 @@ pre{margin:0;height:150px;overflow:auto;background:rgba(14,15,17,.55);border:1px
   <div class="row"><span class="pill" id="status" data-t="offline"></span><span class="sub" id="dev" style="margin:0"></span></div>
   <button class="primary" id="connect" data-t="connect"></button>
 
+  <div class="logh" style="margin-top:4px"><span data-t="ready"></span></div>
+  <ul class="lib" id="lib"></ul>
+
   <div class="drop" id="drop"><div style="font-size:26px">⬆</div><div data-t="drop"></div><input id="pick" type="file" accept=".apk" multiple hidden></div>
   <ul class="files" id="files"></ul>
   <button class="primary" id="install" disabled data-t="install"></button>
@@ -94,12 +105,12 @@ pre{margin:0;height:150px;overflow:auto;background:rgba(14,15,17,.55);border:1px
 
 <script type="module">
 const T = {
-  ar:{title:"JETOUR",pickCar:"اختر سيارتك",change:"تغيير",loginSub:"سجّل الدخول للمتابعة",user:"اسم المستخدم",pass:"كلمة المرور",enter:"دخول",logout:"خروج",
+  ar:{title:"JETOUR",pickCar:"اختر سيارتك",ready:"تطبيقات جاهزة",noLib:"لا توجد تطبيقات جاهزة لهذه السيارة بعد",dl:"جارٍ التنزيل…",change:"تغيير",loginSub:"سجّل الدخول للمتابعة",user:"اسم المستخدم",pass:"كلمة المرور",enter:"دخول",logout:"خروج",
     offline:"غير متصل",online:"متصل",connect:"اتصال بالسيارة",disconnect:"قطع الاتصال",drop:"اسحب ملفات APK هنا أو انقر للاختيار",
     install:"تثبيت التطبيقات",log:"سجل العمليات",copy:"نسخ",clear:"مسح",bad:"بيانات الدخول غير صحيحة",
     privacy:"يعمل بالكامل داخل المتصفح عبر WebUSB، ولا تُرفع ملفاتك إلى أي خادم.",
     noUsb:"المتصفح لا يدعم WebUSB. استخدم Chrome أو Edge.",wait:"بانتظار",doing:"جارٍ التثبيت…",done:"تم",fail:"فشل"},
-  en:{title:"JETOUR",pickCar:"Choose your car",change:"Change",loginSub:"Sign in to continue",user:"Username",pass:"Password",enter:"Sign in",logout:"Log out",
+  en:{title:"JETOUR",pickCar:"Choose your car",ready:"Ready apps",noLib:"No ready apps for this car yet",dl:"Downloading…",change:"Change",loginSub:"Sign in to continue",user:"Username",pass:"Password",enter:"Sign in",logout:"Log out",
     offline:"Offline",online:"Connected",connect:"Connect to car",disconnect:"Disconnect",drop:"Drop APK files here or click to choose",
     install:"Install apps",log:"Activity log",copy:"Copy",clear:"Clear",bad:"Incorrect username or password",
     privacy:"Runs entirely in your browser over WebUSB. Your files are never uploaded.",
@@ -142,10 +153,37 @@ function chooseCar(id){
   car = CARS.find(c => c.id === id) || null;
   try { car ? localStorage.setItem("car", car.id) : localStorage.removeItem("car"); } catch {}
   $("picker").classList.toggle("hide", !!car); $("tool").classList.toggle("hide", !car);
-  if (car) { $("selimg").src = car.img; $("selbrand").textContent = car.brand; $("selname").textContent = car.name; log("Car: " + car.brand + " " + car.name); }
+  if (car) { renderApps(); $("selimg").src = car.img; $("selbrand").textContent = car.brand; $("selname").textContent = car.name; log("Car: " + car.brand + " " + car.name); }
 }
 function initCar(){ renderCars(); let id = null; try { id = localStorage.getItem("car"); } catch {} chooseCar(id); }
 $("chg").onclick = async () => { await disconnect(); chooseCar(null); };
+
+/* ---------- Ready apps (apps.json) ---------- */
+let APPS = null; const picked = new Set();
+function updateInstallBtn(){ $("install").disabled = !(adb && (files.length || picked.size)); }
+async function loadApps(){
+  if (APPS) return;
+  try { const r = await fetch("apps.json", { cache: "no-store" }); APPS = r.ok ? await r.json() : []; if (!Array.isArray(APPS)) APPS = []; }
+  catch { APPS = []; }
+}
+async function renderApps(){
+  await loadApps();
+  const ul = $("lib"); ul.innerHTML = ""; picked.clear();
+  const list = APPS.filter(a => a && a.file && (!a.cars || (car && a.cars.includes(car.id))));
+  if (!list.length) { const li = document.createElement("li"); li.className = "empty"; li.textContent = t("noLib"); ul.append(li); updateInstallBtn(); return; }
+  list.forEach(a => {
+    const li = document.createElement("li"), lb = document.createElement("label");
+    const cb = document.createElement("input"); cb.type = "checkbox";
+    cb.onchange = () => { cb.checked ? picked.add(a) : picked.delete(a); updateInstallBtn(); };
+    const box = document.createElement("div");
+    const nm = document.createElement("div"); nm.className = "nm"; nm.textContent = a.name || a.file;
+    box.append(nm);
+    if (a.desc) { const ds = document.createElement("div"); ds.className = "ds"; ds.textContent = a.desc; box.append(ds); }
+    const st = document.createElement("span"); st.className = "st"; a.stEl = st;
+    lb.append(cb, box, st); li.append(lb); ul.append(li);
+  });
+  updateInstallBtn();
+}
 
 /* ---------- Login ---------- */
 const getTok = () => { try { return sessionStorage.getItem("tok"); } catch { return null; } };
@@ -177,7 +215,7 @@ function renderFiles(){
     const s = document.createElement("span"); s.className = "st " + (f.cls || ""); s.textContent = f.st; f.el = s;
     li.append(n, s); $("files").append(li);
   });
-  $("install").disabled = !(adb && files.length);
+  updateInstallBtn();
 }
 function addFiles(list){
   [...list].filter(f => f.name.toLowerCase().endsWith(".apk")).forEach(file => files.push({ file, st: t("wait") }));
@@ -196,7 +234,7 @@ function setStatus(on, name){
   $("status").classList.toggle("on", on);
   $("connect").textContent = on ? t("disconnect") : t("connect");
   if (name !== undefined) $("dev").textContent = name || "";
-  $("install").disabled = !(on && files.length);
+  updateInstallBtn();
 }
 async function loadLib(){
   if (lib) return lib;
@@ -235,18 +273,26 @@ $("install").onclick = async () => {
   if (!adb) return;
   $("install").disabled = true;
   const pm = new lib.PM(adb);
-  for (const f of files) {
-    f.st = t("doing"); f.cls = ""; f.el.textContent = f.st; f.el.className = "st";
-    log("Installing " + f.file.name);
+  const mark = (el, txt, cls) => { el.textContent = txt; el.className = "st " + (cls || ""); };
+  const jobs = [
+    ...[...picked].map(a => ({ name: a.name || a.file, el: a.stEl,
+      get: async () => { const r = await fetch(a.file); if (!r.ok) throw new Error("HTTP " + r.status + " " + a.file); return await r.blob(); } })),
+    ...files.map(f => ({ name: f.file.name, el: f.el, f, get: async () => f.file }))
+  ];
+  for (const j of jobs) {
+    mark(j.el, t("dl")); log("Preparing " + j.name);
     try {
-      await pm.installStream(f.file.size, f.file.stream());
-      f.st = t("done"); f.cls = "ok"; log("OK: " + f.file.name);
+      const blob = await j.get();
+      mark(j.el, t("doing")); log("Installing " + j.name);
+      await pm.installStream(blob.size, blob.stream());
+      mark(j.el, t("done"), "ok"); log("OK: " + j.name);
+      if (j.f) { j.f.st = t("done"); j.f.cls = "ok"; }
     } catch (e) {
-      f.st = t("fail"); f.cls = "bad"; log("FAILED: " + f.file.name + " — " + (e?.message || e));
+      mark(j.el, t("fail"), "bad"); log("FAILED: " + j.name + " — " + (e?.message || e));
+      if (j.f) { j.f.st = t("fail"); j.f.cls = "bad"; }
     }
-    f.el.textContent = f.st; f.el.className = "st " + f.cls;
   }
-  $("install").disabled = !(adb && files.length);
+  updateInstallBtn();
 };
 
 applyLang();
