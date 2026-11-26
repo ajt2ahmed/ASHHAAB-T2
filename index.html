@@ -38,6 +38,16 @@ button{font:inherit;cursor:pointer;border:0;border-radius:10px;padding:12px 16px
 .logh{display:flex;justify-content:space-between;align-items:center;margin:16px 0 6px;font-size:13px;color:var(--muted)}
 pre{margin:0;height:150px;overflow:auto;background:rgba(14,15,17,.55);border:1px solid var(--line);border-radius:10px;padding:10px;font-size:12px;direction:ltr;text-align:left;white-space:pre-wrap;color:#d5dade}
 .err{color:var(--err);font-size:13px;min-height:18px;margin-top:10px}
+.cars{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-top:6px}
+.car{display:block;width:100%;padding:0;text-align:start;color:inherit;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:rgba(14,15,17,.45);transition:.15s}
+.car:hover{border-color:var(--accent);transform:translateY(-2px)}
+.car img{display:block;width:100%;aspect-ratio:16/10;object-fit:cover}
+.car .meta{padding:10px 12px}
+.car .b{font-size:11px;color:var(--muted);letter-spacing:.14em}
+.car .n{font-size:18px;font-weight:700}
+.selbar{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:8px;border:1px solid var(--line);border-radius:12px;background:rgba(14,15,17,.45)}
+.selbar img{width:56px;height:36px;object-fit:cover;border-radius:8px}
+.selbar .t{flex:1;line-height:1.25} .selbar .b{font-size:11px;color:var(--muted);letter-spacing:.14em} .selbar .n{font-weight:700}
 .hide{display:none!important}
 .note{color:var(--muted);font-size:12px;margin-top:14px;text-align:center}
 </style>
@@ -62,6 +72,13 @@ pre{margin:0;height:150px;overflow:auto;background:rgba(14,15,17,.55);border:1px
     <h1 data-t="title"></h1>
     <div style="display:flex;gap:6px"><button class="ghost" data-lang>EN</button><button class="ghost" id="out" data-t="logout"></button></div>
   </div>
+  <div id="picker">
+    <p class="sub" data-t="pickCar"></p>
+    <div class="cars" id="cars"></div>
+  </div>
+
+  <div id="tool" class="hide">
+  <div class="selbar"><img id="selimg" alt=""><div class="t"><div class="b" id="selbrand"></div><div class="n" id="selname"></div></div><button class="ghost" id="chg" data-t="change"></button></div>
   <div class="row"><span class="pill" id="status" data-t="offline"></span><span class="sub" id="dev" style="margin:0"></span></div>
   <button class="primary" id="connect" data-t="connect"></button>
 
@@ -72,16 +89,17 @@ pre{margin:0;height:150px;overflow:auto;background:rgba(14,15,17,.55);border:1px
   <div class="logh"><span data-t="log"></span><span><button class="ghost" id="copy" data-t="copy"></button> <button class="ghost" id="clear" data-t="clear"></button></span></div>
   <pre id="logbox"></pre>
   <p class="note" data-t="privacy"></p>
+  </div>
 </main>
 
 <script type="module">
 const T = {
-  ar:{title:"JETOUR",loginSub:"سجّل الدخول للمتابعة",user:"اسم المستخدم",pass:"كلمة المرور",enter:"دخول",logout:"خروج",
+  ar:{title:"JETOUR",pickCar:"اختر سيارتك",change:"تغيير",loginSub:"سجّل الدخول للمتابعة",user:"اسم المستخدم",pass:"كلمة المرور",enter:"دخول",logout:"خروج",
     offline:"غير متصل",online:"متصل",connect:"اتصال بالسيارة",disconnect:"قطع الاتصال",drop:"اسحب ملفات APK هنا أو انقر للاختيار",
     install:"تثبيت التطبيقات",log:"سجل العمليات",copy:"نسخ",clear:"مسح",bad:"بيانات الدخول غير صحيحة",
     privacy:"يعمل بالكامل داخل المتصفح عبر WebUSB، ولا تُرفع ملفاتك إلى أي خادم.",
     noUsb:"المتصفح لا يدعم WebUSB. استخدم Chrome أو Edge.",wait:"بانتظار",doing:"جارٍ التثبيت…",done:"تم",fail:"فشل"},
-  en:{title:"JETOUR",loginSub:"Sign in to continue",user:"Username",pass:"Password",enter:"Sign in",logout:"Log out",
+  en:{title:"JETOUR",pickCar:"Choose your car",change:"Change",loginSub:"Sign in to continue",user:"Username",pass:"Password",enter:"Sign in",logout:"Log out",
     offline:"Offline",online:"Connected",connect:"Connect to car",disconnect:"Disconnect",drop:"Drop APK files here or click to choose",
     install:"Install apps",log:"Activity log",copy:"Copy",clear:"Clear",bad:"Incorrect username or password",
     privacy:"Runs entirely in your browser over WebUSB. Your files are never uploaded.",
@@ -103,9 +121,34 @@ const log = (m) => { const b = $("logbox"); b.textContent += `[${new Date().toLo
 $("clear").onclick = () => $("logbox").textContent = "";
 $("copy").onclick = () => navigator.clipboard?.writeText($("logbox").textContent);
 
+/* ---------- Cars (add more here later) ---------- */
+const CARS = [
+  { id: "t2", brand: "JETOUR", name: "T2", img: "car-t2.jpg" }
+];
+let car = null;
+function renderCars(){
+  const box = $("cars"); box.innerHTML = "";
+  CARS.forEach(c => {
+    const b = document.createElement("button"); b.type = "button"; b.className = "car";
+    const im = document.createElement("img"); im.src = c.img; im.alt = c.brand + " " + c.name;
+    const m = document.createElement("div"); m.className = "meta";
+    const br = document.createElement("div"); br.className = "b"; br.textContent = c.brand;
+    const n = document.createElement("div"); n.className = "n"; n.textContent = c.name;
+    m.append(br, n); b.append(im, m); b.onclick = () => chooseCar(c.id); box.append(b);
+  });
+}
+function chooseCar(id){
+  car = CARS.find(c => c.id === id) || null;
+  try { car ? localStorage.setItem("car", car.id) : localStorage.removeItem("car"); } catch {}
+  $("picker").classList.toggle("hide", !!car); $("tool").classList.toggle("hide", !car);
+  if (car) { $("selimg").src = car.img; $("selbrand").textContent = car.brand; $("selname").textContent = car.name; log("Car: " + car.brand + " " + car.name); }
+}
+function initCar(){ renderCars(); let id = null; try { id = localStorage.getItem("car"); } catch {} chooseCar(id); }
+$("chg").onclick = async () => { await disconnect(); chooseCar(null); };
+
 /* ---------- Login ---------- */
 const getTok = () => { try { return sessionStorage.getItem("tok"); } catch { return null; } };
-const showApp = (on) => { $("login").classList.toggle("hide", on); $("app").classList.toggle("hide", !on); };
+const showApp = (on) => { $("login").classList.toggle("hide", on); $("app").classList.toggle("hide", !on); if (on) initCar(); };
 async function verify(){
   const tok = getTok(); if (!tok) return showApp(false);
   try { const r = await fetch("/api/auth", { headers: { Authorization: "Bearer " + tok } }); showApp(r.ok); }
