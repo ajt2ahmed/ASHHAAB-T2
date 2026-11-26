@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>JETOUR</title>
+<title>AUTRON</title>
 <style>
 /* ===== Change the look here ===== */
 :root{
@@ -58,6 +58,7 @@ pre{margin:0;height:150px;overflow:auto;background:rgba(14,15,17,.55);border:1px
 .lib .ic{width:44px;height:44px;border-radius:11px;object-fit:cover;flex:none;background:rgba(255,255,255,.06)}
 .lib .ph{display:grid;place-items:center;font-weight:800;font-size:18px;color:var(--accent);border:1px solid var(--line)}
 .lib .empty{color:var(--muted);font-size:13px;padding:6px 2px}
+.company{direction:ltr;text-align:left;font-size:10px;letter-spacing:.32em;color:var(--muted);margin-top:2px;white-space:nowrap}
 .hide{display:none!important}
 .note{color:var(--muted);font-size:12px;margin-top:14px;text-align:center}
 </style>
@@ -66,7 +67,7 @@ pre{margin:0;height:150px;overflow:auto;background:rgba(14,15,17,.55);border:1px
 
 <!-- Login -->
 <form class="card" id="login" autocomplete="on">
-  <div class="row"><h1 data-t="title"></h1><button type="button" class="ghost" data-lang>EN</button></div>
+  <div class="row"><div class="brand"><h1 data-t="title"></h1><div class="company">ASHHAB GMBH</div></div><button type="button" class="ghost" data-lang>EN</button></div>
   <p class="sub" data-t="loginSub"></p>
   <label for="u" data-t="user"></label>
   <input id="u" type="text" name="username" autocomplete="username" required>
@@ -79,7 +80,7 @@ pre{margin:0;height:150px;overflow:auto;background:rgba(14,15,17,.55);border:1px
 <!-- App -->
 <main class="card hide" id="app">
   <div class="row">
-    <h1 data-t="title"></h1>
+    <div class="brand"><h1 data-t="title"></h1><div class="company">ASHHAB GMBH</div></div>
     <div style="display:flex;gap:6px"><button class="ghost" data-lang>EN</button><button class="ghost" id="out" data-t="logout"></button></div>
   </div>
   <div id="picker">
@@ -107,12 +108,12 @@ pre{margin:0;height:150px;overflow:auto;background:rgba(14,15,17,.55);border:1px
 
 <script type="module">
 const T = {
-  ar:{title:"JETOUR",pickCar:"اختر سيارتك",ready:"تطبيقات جاهزة",noLib:"لا توجد تطبيقات جاهزة لهذه السيارة بعد",dl:"جارٍ التنزيل…",change:"تغيير",loginSub:"سجّل الدخول للمتابعة",user:"اسم المستخدم",pass:"كلمة المرور",enter:"دخول",logout:"خروج",
+  ar:{title:"AUTRON",pickCar:"اختر سيارتك",ready:"تطبيقات جاهزة",noLib:"لا توجد تطبيقات جاهزة لهذه السيارة بعد",dl:"جارٍ التنزيل…",change:"تغيير",loginSub:"سجّل الدخول للمتابعة",user:"اسم المستخدم",pass:"كلمة المرور",enter:"دخول",logout:"خروج",
     offline:"غير متصل",online:"متصل",connect:"اتصال بالسيارة",disconnect:"قطع الاتصال",drop:"اسحب ملفات APK هنا أو انقر للاختيار",
     install:"تثبيت التطبيقات",log:"سجل العمليات",copy:"نسخ",clear:"مسح",bad:"بيانات الدخول غير صحيحة",
     privacy:"يعمل بالكامل داخل المتصفح عبر WebUSB، ولا تُرفع ملفاتك إلى أي خادم.",
     noUsb:"المتصفح لا يدعم WebUSB. استخدم Chrome أو Edge.",wait:"بانتظار",doing:"جارٍ التثبيت…",done:"تم",fail:"فشل"},
-  en:{title:"JETOUR",pickCar:"Choose your car",ready:"Ready apps",noLib:"No ready apps for this car yet",dl:"Downloading…",change:"Change",loginSub:"Sign in to continue",user:"Username",pass:"Password",enter:"Sign in",logout:"Log out",
+  en:{title:"AUTRON",pickCar:"Choose your car",ready:"Ready apps",noLib:"No ready apps for this car yet",dl:"Downloading…",change:"Change",loginSub:"Sign in to continue",user:"Username",pass:"Password",enter:"Sign in",logout:"Log out",
     offline:"Offline",online:"Connected",connect:"Connect to car",disconnect:"Disconnect",drop:"Drop APK files here or click to choose",
     install:"Install apps",log:"Activity log",copy:"Copy",clear:"Clear",bad:"Incorrect username or password",
     privacy:"Runs entirely in your browser over WebUSB. Your files are never uploaded.",
