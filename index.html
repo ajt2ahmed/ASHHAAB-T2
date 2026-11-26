@@ -153,11 +153,10 @@ function renderCars(){
 }
 function chooseCar(id){
   car = CARS.find(c => c.id === id) || null;
-  try { car ? localStorage.setItem("car", car.id) : localStorage.removeItem("car"); } catch {}
   $("picker").classList.toggle("hide", !!car); $("tool").classList.toggle("hide", !car);
   if (car) { renderApps(); $("selimg").src = car.img; $("selbrand").textContent = car.brand; $("selname").textContent = car.name; log("Car: " + car.brand + " " + car.name); }
 }
-function initCar(){ renderCars(); let id = null; try { id = localStorage.getItem("car"); } catch {} chooseCar(id); }
+function initCar(){ renderCars(); chooseCar(null); }
 $("chg").onclick = async () => { await disconnect(); chooseCar(null); };
 
 /* ---------- Ready apps (apps.json) ---------- */
