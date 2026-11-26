@@ -41,6 +41,8 @@ pre{margin:0;height:150px;overflow:auto;background:rgba(14,15,17,.55);border:1px
 .cars{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-top:6px}
 .car{display:block;width:100%;padding:0;text-align:start;color:inherit;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:rgba(14,15,17,.45);transition:.15s}
 .car:hover{border-color:var(--accent);transform:translateY(-2px)}
+.car.sel{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset}
+.car.sel .n{color:var(--accent-2)}
 .car img{display:block;width:100%;aspect-ratio:16/10;object-fit:cover}
 .car .meta{padding:10px 12px}
 .car .b{font-size:11px;color:var(--muted);letter-spacing:.14em}
@@ -89,7 +91,6 @@ pre{margin:0;height:150px;overflow:auto;background:rgba(14,15,17,.55);border:1px
   </div>
 
   <div id="tool" class="hide">
-  <div class="selbar"><img id="selimg" alt=""><div class="t"><div class="b" id="selbrand"></div><div class="n" id="selname"></div></div><button class="ghost" id="chg" data-t="change"></button></div>
   <div class="row"><span class="pill" id="status" data-t="offline"></span><span class="sub" id="dev" style="margin:0"></span></div>
   <button class="primary" id="connect" data-t="connect"></button>
 
@@ -150,16 +151,16 @@ function renderCars(){
     const m = document.createElement("div"); m.className = "meta";
     const br = document.createElement("div"); br.className = "b"; br.textContent = c.brand;
     const n = document.createElement("div"); n.className = "n"; n.textContent = c.name;
-    m.append(br, n); b.append(im, m); b.onclick = () => chooseCar(c.id); box.append(b);
+    m.append(br, n); b.append(im, m); b.onclick = () => chooseCar(c.id, true); box.append(b);
   });
 }
-function chooseCar(id){
+function chooseCar(id, scroll){
   car = CARS.find(c => c.id === id) || null;
-  $("picker").classList.toggle("hide", !!car); $("tool").classList.toggle("hide", !car);
-  if (car) { renderApps(); $("selimg").src = car.img; $("selbrand").textContent = car.brand; $("selname").textContent = car.name; log("Car: " + car.brand + " " + car.name); }
+  document.querySelectorAll(".car").forEach((b, i) => b.classList.toggle("sel", CARS[i] === car));
+  $("tool").classList.toggle("hide", !car);
+  if (car) { renderApps(); log("Car: " + car.brand + " " + car.name); if (scroll) $("tool").scrollIntoView({ behavior: "smooth", block: "nearest" }); }
 }
 function initCar(){ renderCars(); chooseCar(null); }
-$("chg").onclick = async () => { await disconnect(); chooseCar(null); };
 
 /* ---------- Ready apps (apps.json) ---------- */
 let APPS = null; const picked = new Set();
