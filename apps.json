@@ -1,12 +1,12 @@
 [
   {
-    "name": "file-manager",
-    "file": "file-manager-plus-3-6-8.apk",
-    "desc": "وصف قصير",
-    "cars": []
+    "name": "File Manager Plus 3.6.8",
+    "file": "apks/file-manager-plus-3-6-8.apk",
+    "desc": "مدير ملفات"
   },
   {
     "name": "Clock",
-    "file": "clock.apk"
+    "file": "apks/clock.apk",
+    "desc": "ساعة"
   }
 ]
