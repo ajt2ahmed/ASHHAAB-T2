@@ -2,11 +2,13 @@
   {
     "name": "File Manager Plus 3.6.8",
     "file": "apks/file-manager-plus-3-6-8.apk",
-    "desc": "مدير ملفات"
+    "desc": "مدير ملفات",
+    "icon": "apks/icons/file-manager-plus.png"
   },
   {
     "name": "Clock",
     "file": "apks/clock.apk",
-    "desc": "ساعة"
+    "desc": "ساعة",
+    "icon": "apks/icons/clock.png"
   }
 ]

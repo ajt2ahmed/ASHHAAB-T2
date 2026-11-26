@@ -55,6 +55,8 @@ pre{margin:0;height:150px;overflow:auto;background:rgba(14,15,17,.55);border:1px
 .lib .nm{font-weight:600;font-size:14px} .lib .ds{color:var(--muted);font-size:12px;margin-top:2px}
 .lib .st{margin-inline-start:auto;font-size:12px;color:var(--muted);white-space:nowrap}
 .lib .st.ok{color:var(--ok)} .lib .st.bad{color:var(--err)}
+.lib .ic{width:44px;height:44px;border-radius:11px;object-fit:cover;flex:none;background:rgba(255,255,255,.06)}
+.lib .ph{display:grid;place-items:center;font-weight:800;font-size:18px;color:var(--accent);border:1px solid var(--line)}
 .lib .empty{color:var(--muted);font-size:13px;padding:6px 2px}
 .hide{display:none!important}
 .note{color:var(--muted);font-size:12px;margin-top:14px;text-align:center}
@@ -175,12 +177,16 @@ async function renderApps(){
     const li = document.createElement("li"), lb = document.createElement("label");
     const cb = document.createElement("input"); cb.type = "checkbox";
     cb.onchange = () => { cb.checked ? picked.add(a) : picked.delete(a); updateInstallBtn(); };
+    const ph = () => { const d = document.createElement("div"); d.className = "ic ph"; d.textContent = (a.name || a.file || "?").trim().charAt(0).toUpperCase(); return d; };
+    let ic;
+    if (a.icon) { ic = document.createElement("img"); ic.className = "ic"; ic.alt = ""; ic.loading = "lazy"; ic.src = a.icon; ic.onerror = () => ic.replaceWith(ph()); }
+    else ic = ph();
     const box = document.createElement("div");
     const nm = document.createElement("div"); nm.className = "nm"; nm.textContent = a.name || a.file;
     box.append(nm);
     if (a.desc) { const ds = document.createElement("div"); ds.className = "ds"; ds.textContent = a.desc; box.append(ds); }
     const st = document.createElement("span"); st.className = "st"; a.stEl = st;
-    lb.append(cb, box, st); li.append(lb); ul.append(li);
+    lb.append(cb, ic, box, st); li.append(lb); ul.append(li);
   });
   updateInstallBtn();
 }
